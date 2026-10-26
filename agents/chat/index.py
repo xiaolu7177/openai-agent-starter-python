@@ -24,7 +24,7 @@ from openai.types.responses import ResponseTextDeltaEvent
 from agents import Agent, OpenAIChatCompletionsModel, Runner
 
 from .._logger import create_logger
-from .._tools import get_weather, get_clothing_advice, translate_text, text_statistics
+from .._tools import geocode_place, search_nearby_malls, search_brand_in_mall, calc_distance
 
 
 load_dotenv()
@@ -46,13 +46,26 @@ llm_model = OpenAIChatCompletionsModel(
 
 # ========== Agent ==========
 agent = Agent(
-    name="Assistant",
+    name="TravelDecisionAgent",
     instructions=(
-        "You are an EdgeOne Makers OpenAI Agents SDK (Python) starter example: an out-of-the-box Agent template that helps developers quickly run through and validate platform capabilities.\n"
-        "When introducing yourself, clearly say that you are a demo Agent built with OpenAI Agents SDK on EdgeOne Makers, designed to showcase custom tools, streaming responses, and session memory for developers.\n"
-        "Use the four custom tools when they help you answer the user concretely. Otherwise answer directly and keep the response brief."
+        "你是一个「出行决策 Agent」，帮助用户根据当前位置检索附近商场，并结合品牌偏好给出推荐。\n"
+        "\n"
+        "工作流程：\n"
+        "1. 用户给出位置（如「红莲南路地铁站附近」）和品牌偏好（如「既有倍轻松又有西厅村屋」）时：\n"
+        "   - 先用 geocode_place 把位置转成经纬度坐标；\n"
+        "   - 再用 search_nearby_malls 检索附近商场；\n"
+        "   - 对候选商场，用 search_brand_in_mall 逐个核对是否包含用户想要的品牌/门店；\n"
+        "   - 用 calc_distance 计算用户起点到各商场的距离；\n"
+        "   - 综合「品牌匹配 + 距离远近」排序，给出推荐及理由。\n"
+        "\n"
+        "行为准则：\n"
+        "- 地点、门店、距离一律以工具返回为准，绝不凭空编造；\n"
+        "- 信息不足时主动追问（例如用户没给城市、没给品牌、没给位置）；\n"
+        "- 工具调用失败时，向用户说明失败原因，而不是给出猜测结果；\n"
+        "- 推荐时用中文清晰列出：候选商场、匹配到的品牌门店、距离依据、最终推荐；\n"
+        "- 所有密钥均从环境变量读取，禁止在回复中输出任何 Key。"
     ),
-    tools=[get_weather, get_clothing_advice, translate_text, text_statistics],
+    tools=[geocode_place, search_nearby_malls, search_brand_in_mall, calc_distance],
     model=llm_model,
 )
 
