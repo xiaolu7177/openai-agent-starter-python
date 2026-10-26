@@ -1,0 +1,18 @@
+项目：出行决策 Agent（Travel Decision Agent）
+框架：OpenAI Agents SDK (Python) + EdgeOne Makers
+仓库：https://github.com/xiaolu7177/travel-decision-agent
+
+公开预览地址（EdgeOne Makers 预览入口）：
+https://openai-agent-starter-python-py-m9oxnhxl.edgeone.cool
+
+访问说明：
+1. 该地址为 EdgeOne Makers 平台分配的项目域名；
+2. 因域名未做 ICP 备案，从中国大陆访问需使用带访问令牌的预览链接；
+3. 最新预览链接获取方式：Makers 控制台 → 项目 openai-agent-starter-python-py
+   （https://console.cloud.tencent.com/edgeone/pages/project/makers-tp7hkmwumfo1）
+   → 构建部署 → 点击对应部署记录的「预览」按钮，即可获得 3 小时有效的完整访问链接；
+4. 当前最近一次成功部署：Deployment ID dp1crddd64a0（2026-10-26 23:55:56，状态：成功）。
+
+体验示例：
+输入「我在红莲南路地铁站附近，想去一个有倍轻松的离得近的商场，帮我推荐」，
+Agent 将调用高德地图工具完成地理编码、周边商场检索、品牌门店核对与距离计算，并给出推荐。
