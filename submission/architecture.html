@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>出行决策 Agent — 系统架构图</title>
+<style>
+  :root{
+    --bg:#0f172a; --panel:#1e293b; --panel2:#273449; --line:#334155;
+    --txt:#e2e8f0; --muted:#94a3b8; --accent:#38bdf8; --accent2:#818cf8;
+    --green:#34d399; --amber:#fbbf24; --pink:#f472b6;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--txt);font-family:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;padding:40px 24px;line-height:1.6}
+  .wrap{max-width:1060px;margin:0 auto}
+  h1{font-size:26px;font-weight:700;text-align:center;margin-bottom:6px}
+  .sub{text-align:center;color:var(--muted);font-size:14px;margin-bottom:36px}
+  .sub b{color:var(--accent)}
+  .legend{display:flex;justify-content:center;gap:22px;flex-wrap:wrap;margin-bottom:32px;font-size:13px;color:var(--muted)}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .dot{width:10px;height:10px;border-radius:3px;display:inline-block}
+  .layer{display:flex;flex-direction:column;gap:12px;margin-bottom:22px}
+  .layer-title{font-size:13px;font-weight:600;color:var(--accent);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px}
+  .row{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;min-width:200px;flex:1;max-width:340px}
+  .card .tag{font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;display:inline-block;margin-bottom:8px}
+  .card h3{font-size:15px;margin-bottom:6px}
+  .card p{font-size:12.5px;color:var(--muted)}
+  .card code{font-size:11.5px;background:#0b1220;padding:1px 6px;border-radius:4px;color:var(--accent)}
+  .tag.blue{background:rgba(56,189,248,.15);color:var(--accent)}
+  .tag.violet{background:rgba(129,140,248,.18);color:var(--accent2)}
+  .tag.green{background:rgba(52,211,153,.15);color:var(--green)}
+  .tag.amber{background:rgba(251,191,36,.15);color:var(--amber)}
+  .tag.pink{background:rgba(244,114,182,.15);color:var(--pink)}
+  .arrow{text-align:center;color:var(--muted);font-size:20px;margin:2px 0}
+  .flow{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:20px;margin-bottom:8px}
+  .flow h4{font-size:14px;margin-bottom:14px;color:var(--txt)}
+  .steps{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center}
+  .step{background:#0b1220;border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:12.5px;color:var(--txt)}
+  .step b{color:var(--accent)}
+  .sepH{color:var(--muted);font-weight:700}
+  .foot{text-align:center;color:var(--muted);font-size:12px;margin-top:30px}
+  @media(max-width:600px){.card{max-width:100%}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>出行决策 Agent · 系统架构</h1>
+  <p class="sub">基于 <b>OpenAI Agents SDK (Python)</b> + <b>EdgeOne Makers</b> · 高德地图 Web 服务 · DeepSeek 模型</p>
+
+  <div class="legend">
+    <span><i class="dot" style="background:var(--accent)"></i>前端</span>
+    <span><i class="dot" style="background:var(--accent2)"></i>Agent 运行时</span>
+    <span><i class="dot" style="background:var(--green)"></i>工具层</span>
+    <span><i class="dot" style="background:var(--amber)"></i>外部服务</span>
+    <span><i class="dot" style="background:var(--pink)"></i>模型层</span>
+  </div>
+
+  <!-- 前端层 -->
+  <div class="layer">
+    <div class="layer-title">① 前端层 Frontend</div>
+    <div class="row">
+      <div class="card">
+        <span class="tag blue">React + Vite</span>
+        <h3>聊天界面</h3>
+        <p>React + TypeScript + Vite 构建，SSE 流式渲染 Agent 回复，<code>src/</code> → <code>dist/</code></p>
+      </div>
+      <div class="card">
+        <span class="tag blue">SSE Stream</span>
+        <h3>流式交互</h3>
+        <p>通过 <code>POST /chat</code> 建立 SSE 连接，实时接收 <code>text_delta</code> / <code>tool_called</code> 事件</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="arrow">▼</div>
+
+  <!-- Agent 层 -->
+  <div class="layer">
+    <div class="layer-title">② Agent 运行时（EdgeOne Makers）</div>
+    <div class="row">
+      <div class="card">
+        <span class="tag violet">agents/chat/index.py</span>
+        <h3>TravelDecisionAgent</h3>
+        <p>路由 <code>POST /chat</code>，基于 OpenAI Agents SDK，具备会话记忆（Session）、SSE 流式输出、取消信号处理</p>
+      </div>
+      <div class="card">
+        <span class="tag violet">agents/_tools.py</span>
+        <h3>工具注册</h3>
+        <p>4 个 <code>@function_tool</code> 装饰的真实工具，统一通过 <code>_amap_get</code> 调用高德接口</p>
+      </div>
+      <div class="card">
+        <span class="tag violet">cloud-functions/</span>
+        <h3>无状态函数</h3>
+        <p><code>history/</code> 拉取会话历史等辅助接口，独立于有状态 Agent</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="arrow">▼</div>
+
+  <!-- 工具层 -->
+  <div class="layer">
+    <div class="layer-title">③ 工具层 Tools（高德地图 Web 服务）</div>
+    <div class="row">
+      <div class="card">
+        <span class="tag green">geocode_place</span>
+        <h3>地理编码</h3>
+        <p>位置描述 → 经纬度坐标<br><code>/v3/geocode/geo</code></p>
+      </div>
+      <div class="card">
+        <span class="tag green">search_nearby_malls</span>
+        <h3>周边商场检索</h3>
+        <p>坐标 + 半径 → 附近商场（含评分/距离排序）<br><code>/v3/place/around</code></p>
+      </div>
+      <div class="card">
+        <span class="tag green">search_brand_in_mall</span>
+        <h3>品牌门店匹配</h3>
+        <p>商场 + 品牌 → 门店是否存在<br><code>/v3/place/text</code></p>
+      </div>
+      <div class="card">
+        <span class="tag green">calc_distance</span>
+        <h3>距离计算</h3>
+        <p>起终点坐标 → 直线/驾车/步行距离<br><code>/v3/distance</code></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="arrow">▼</div>
+
+  <!-- 外部服务 + 模型层 -->
+  <div class="layer">
+    <div class="layer-title">④ 外部服务 &amp; 模型层</div>
+    <div class="row">
+      <div class="card">
+        <span class="tag amber">高德开放平台</span>
+        <h3>AMAP_API_KEY</h3>
+        <p>地点/商场/距离数据源，<code>restapi.amap.com</code>，Key 从环境变量读取</p>
+      </div>
+      <div class="card">
+        <span class="tag pink">DeepSeek</span>
+        <h3>deepseek-chat</h3>
+        <p><code>AI_GATEWAY_BASE_URL=https://api.deepseek.com/v1</code>，OpenAI 兼容协议直连</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 请求流 -->
+  <div class="flow">
+    <h4>🔄 一次典型请求的处理链路</h4>
+    <div class="steps">
+      <span class="step">用户输入<br><b>位置 + 品牌偏好</b></span>
+      <span class="sepH">→</span>
+      <span class="step">① geocode_place<br><b>转坐标</b></span>
+      <span class="sepH">→</span>
+      <span class="step">② search_nearby_malls<br><b>检索商场</b></span>
+      <span class="sepH">→</span>
+      <span class="step">③ search_brand_in_mall<br><b>核对品牌</b></span>
+      <span class="sepH">→</span>
+      <span class="step">④ calc_distance<br><b>算距离</b></span>
+      <span class="sepH">→</span>
+      <span class="step">综合排序<br><b>给出推荐</b></span>
+    </div>
+  </div>
+
+  <p class="foot">出行决策 Agent · Travel Decision Agent · 密钥一律经环境变量注入，绝不硬编码</p>
+</div>
+</body>
+</html>
